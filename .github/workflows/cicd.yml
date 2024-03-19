@@ -88,7 +88,7 @@ jobs:
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
           ls -la
-          sed -i 's|image: '${{ env.DOCKER_IMAGE }}':.*|image: '${{ env.DOCKER_IMAGE }}':'"$IMAGE_TAG"'|' base/fe-deployment.yaml
+          sed -i 's|image: '${{ env.DOCKER_IMAGE }}':.*|image: '${{ env.DOCKER_IMAGE }}':'"$IMAGE_TAG"'|' overlays/development/kustomization.yaml
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
