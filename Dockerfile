@@ -1,11 +1,17 @@
-FROM node:14.15.0
+FROM node:20-alpine3.18
 
-COPY . .
+# RUN addgroup app && adduser -S -G app app
+
+# USER app
+
+WORKDIR /app
+
+COPY package*.json ./
 
 RUN npm install
 
-RUN npm run build
+COPY . .
 
-EXPOSE 3001
+EXPOSE 5173
 
-CMD node server/main.js
+CMD npm run dev
