@@ -92,7 +92,7 @@ jobs:
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
           ls -la
-          sed -i 's|image: '${{ env.DOCKER_IMAGE }}':.*|image: '${{ env.DOCKER_IMAGE }}':'"$IMAGE_TAG"'|' overlays/development/kustomization.yaml
+          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" overlays/development/kustomization.yaml
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
@@ -119,7 +119,7 @@ jobs:
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
           ls -la
-          sed -i 's|image: '${{ env.DOCKER_IMAGE }}':.*|image: '${{ env.DOCKER_IMAGE }}':'"$IMAGE_TAG"'|' overlays/production/kustomization.yaml
+          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" overlays/production/kustomization.yaml
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
