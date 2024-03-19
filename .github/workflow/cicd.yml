@@ -1,0 +1,81 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+
+env:
+  DOCKER_IMAGE: yasminemarzouk/template-fe
+
+jobs:
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.short-sha.outputs.sha }} 
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get short SHA
+        id: short-sha
+        run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
+
+      - name: Prepare Docker Tags
+        id: docker-tags
+        run: |
+          COMMIT_SHA=${{ steps.short-sha.outputs.sha }}
+          echo "COMMIT_SHA_TAG=$COMMIT_SHA" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION_TAG=${GITHUB_REF/refs\/tags\//}
+            echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+            TAGS="$VERSION_TAG,$COMMIT_SHA"
+          else
+            TAGS="$COMMIT_SHA"
+          fi
+          echo "DOCKER_IMAGE_TAGS=$TAGS" >> $GITHUB_ENV
+
+      - name: Build and Push Docker image
+        run: |
+          DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}
+          DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
+
+          # Log in to Docker Hub
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+          # Build Docker image
+          docker build -t $DOCKER_IMAGE .
+
+          # Tag and Push Docker image for each determined tag
+          IFS=',' read -ra TAGS <<< "$DOCKER_IMAGE_TAGS"
+          for TAG in "${TAGS[@]}"; do
+            docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$TAG
+            docker push $DOCKER_IMAGE:$TAG
+          done
+
+  update-deployment:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deployment code
+        uses: actions/checkout@v2
+        with:
+          repository: Yasminemaroukk/kustomize-  # Update with your deployment repository URL
+          ref: 'main'
+          token: ${{ secrets.TOKEN }}  # Replace with your personal access token for accessing private repositories
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Update Deployment Image
+        run: |
+          IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
+          sed -i 's|image: '${{ env.DOCKER_IMAGE }}':.*|image: '${{ env.DOCKER_IMAGE }}':'"$IMAGE_TAG"'|' base/fe-deployment.yaml
+          git add base/fe-deployment.yaml
+          git commit -m "Update image version to $IMAGE_TAG"
+          git push
