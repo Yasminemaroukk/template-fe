@@ -9,6 +9,8 @@ on:
 
 env:
   DOCKER_IMAGE: yasminemarzouk/template-fe
+  DEV_VITE_API_URL: ${{secrets.DEV_VITE_API_URL}}
+  PROD_VITE_API_URL: ${{secrets.PROD_VITE_API_URL}}
 
 jobs:
 
@@ -18,6 +20,15 @@ jobs:
       sha: ${{ steps.short-sha.outputs.sha }} 
     steps:
       - uses: actions/checkout@v2
+    
+      - name: Set env to dev
+        if: endsWith(github.ref, '/dev')
+        run: |
+          echo "DEV_VITE_API_URL=${{env.DEV_VITE_API_URL}}" >> $GITHUB_ENV
+      - name: Set env to production
+        if: endsWith(github.ref, '/prod')
+        run: |
+         echo "PROD_VITE_API_URL=${{env.PROD_VITE_API_URL}}" >> $GITHUB_ENV
 
       - name: Get short SHA
         id: short-sha
