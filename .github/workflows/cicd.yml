@@ -97,11 +97,9 @@ jobs:
           git commit -m "Update image version to $IMAGE_TAG"
           git push
           
-  update-deployment-prod :
-  
-    if: github.ref == 'refs/heads/prod'
-    needs: build-and-push
+  update-deployment:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
     steps:
       - name: Checkout deployment code
         uses: actions/checkout@v2
@@ -118,8 +116,8 @@ jobs:
       - name: Update Deployment Image
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          ls -la
-          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" overlays/production/kustomization.yaml
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{vars.DEV_PATH}} || echo ${{vars.PROD_PATH}} )
+          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
