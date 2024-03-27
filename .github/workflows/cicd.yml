@@ -78,20 +78,20 @@ jobs:
       - name: Checkout deployment code
         uses: actions/checkout@v2
         with:
-          repository: Yasminemaroukk/kustomize-  # Update with your deployment repository URL
+          repository: Yasminemaroukk/kustomize- 
           ref: 'main'
-          token: ${{ secrets.TOKEN }}  # Replace with your personal access token for accessing private repositories
+          token: ${{ secrets.TOKEN }} 
 
       - name: Configure Git
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      - name: Debug
+      - name: Update Deployment Image
         run: |
-          echo "GITHUB_REF: $GITHUB_REF"
-          echo "DEV_PATH: ${{ vars.DEV_PATH }}"
-          echo "PROD_PATH: ${{ vars.PROD_PATH }}"
-        
-      
-
+          IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ vars.DEV_PATH }} || echo ${{ vars.PROD_PATH }})
+          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
+          git add .
+          git commit -m "Update image version to $IMAGE_TAG"
+          git push 
