@@ -13,6 +13,8 @@ env:
   DOCKER_IMAGE: yasminemarzouk/template-fe
   DEV_VITE_API_URL: ${{secrets.DEV_VITE_API_URL}}
   PROD_VITE_API_URL: ${{secrets.PROD_VITE_API_URL}}
+  DEV_PATH: ${{vars.DEV_PATH}}
+  PROD_PATH: ${{vars.PROD_PATH}}
 
 jobs:
 
@@ -70,8 +72,7 @@ jobs:
           done
 
  
-
-          
+ 
   update-deployment:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
@@ -91,7 +92,7 @@ jobs:
       - name: Update Deployment Image
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{vars.DEV_PATH}} || echo ${{vars.PROD_PATH}} )
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo $DEV_PATH || echo $PROD_PATH)
           sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
