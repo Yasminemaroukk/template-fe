@@ -74,6 +74,7 @@ jobs:
   update-deployment:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
+    needs: build-and-push
     steps:
       - name: Checkout deployment code
         uses: actions/checkout@v2
