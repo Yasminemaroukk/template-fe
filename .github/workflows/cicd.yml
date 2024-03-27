@@ -70,11 +70,10 @@ jobs:
           done
 
  
-  update-deployment-dev:
-  
-    if: github.ref == 'refs/heads/dev'
-    needs: build-and-push
+ 
+  update-deployment:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
     steps:
       - name: Checkout deployment code
         uses: actions/checkout@v2
@@ -91,35 +90,8 @@ jobs:
       - name: Update Deployment Image
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          ls -la
-          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" overlays/development/kustomization.yaml
-          git add .
-          git commit -m "Update image version to $IMAGE_TAG"
-          git push
-          
-  update-deployment-prod :
-  
-    if: github.ref == 'refs/heads/prod'
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout deployment code
-        uses: actions/checkout@v2
-        with:
-          repository: Yasminemaroukk/kustomize-  # Update with your deployment repository URL
-          ref: 'main'
-          token: ${{ secrets.TOKEN }}  # Replace with your personal access token for accessing private repositories
-
-      - name: Configure Git
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-      - name: Update Deployment Image
-        run: |
-          IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          ls -la
-          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" overlays/production/kustomization.yaml
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{vars.DEV_PATH}} || echo ${{vars.PROD_PATH)}}
+          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
