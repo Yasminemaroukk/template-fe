@@ -92,6 +92,7 @@ jobs:
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
           LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{vars.DEV_PATH}} || echo ${{vars.PROD_PATH}} )
+          echo $LS_PATH
           sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
