@@ -11,10 +11,8 @@ on:
 
 env:
   DOCKER_IMAGE: yasminemarzouk/template-fe
-  DEV_VITE_API_URL: ${{secrets.DEV_VITE_API_URL}}
-  PROD_VITE_API_URL: ${{secrets.PROD_VITE_API_URL}}
-  DEV_PATH: ${{vars.DEV_PATH}}
-  PROD_PATH: ${{vars.PROD_PATH}}
+  DEV_VITE_API_URL: ${{ secrets.DEV_VITE_API_URL }}
+  PROD_VITE_API_URL: ${{ secrets.PROD_VITE_API_URL }}
 
 jobs:
 
@@ -76,13 +74,14 @@ jobs:
   update-deployment:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
+    needs: build-and-push
     steps:
       - name: Checkout deployment code
         uses: actions/checkout@v2
         with:
-          repository: Yasminemaroukk/kustomize-  # Update with your deployment repository URL
+          repository: Yasminemaroukk/kustomize- 
           ref: 'main'
-          token: ${{ secrets.TOKEN }}  # Replace with your personal access token for accessing private repositories
+          token: ${{ secrets.TOKEN }} 
 
       - name: Configure Git
         run: |
@@ -92,8 +91,8 @@ jobs:
       - name: Update Deployment Image
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo $DEV_PATH || echo $PROD_PATH)
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ vars.DEV_PATH }} || echo ${{ vars.PROD_PATH }})
           sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
-          git push
+          git push 
