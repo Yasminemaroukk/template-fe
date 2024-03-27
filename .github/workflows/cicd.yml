@@ -90,18 +90,8 @@ jobs:
       - name: Debug
         run: |
           echo "GITHUB_REF: $GITHUB_REF"
-          echo "DEV_PATH: ${{ env.DEV_PATH }}"
-          echo "PROD_PATH: ${{ env.PROD_PATH }}"
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ env.DEV_PATH }} || echo ${{ env.PROD_PATH }})
-          echo "LS_PATH: $LS_PATH"
-
-      - name: Update Deployment Image
-        run: |
-          IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ env.DEV_PATH }} || echo ${{ env.PROD_PATH }})
-          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
-          git add .
-          git commit -m "Update image version to $IMAGE_TAG"
-          git push 
-
+          echo "DEV_PATH: ${{ vars.DEV_PATH }}"
+          echo "PROD_PATH: ${{ vars.PROD_PATH }}"
+        
+      
 
