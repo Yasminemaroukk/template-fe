@@ -18,6 +18,8 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
+    environment:
+      name: prod 
     outputs:
       sha: ${{ steps.short-sha.outputs.sha }} 
     steps:
