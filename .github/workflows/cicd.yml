@@ -34,8 +34,9 @@ jobs:
 
       - name: Get short SHA
         id: short-sha
-        run: echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
-
+        run: |
+             echo "::set-output name=sha::$(git rev-parse --short=7 ${{ github.sha }})"
+             echo "${{ vars.PROD_YASSOU }}"
       - name: Prepare Docker Tags
         id: docker-tags
         run: |
