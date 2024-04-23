@@ -13,25 +13,23 @@ env:
   DOCKER_IMAGE: yasminemarzouk/template-fe
 
 jobs:
-
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.short-sha.outputs.sha }}
     steps:
-      - uses: actions/checkout@v2
-    
-      - name: Set env to dev
-        if: github.ref == 'refs/heads/dev'
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set environment variables
         run: |
-          echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
-          echo "DEV_PATH=dev/path" >> $GITHUB_ENV
-      
-      - name: Set env to production
-        if: github.ref == 'refs/heads/prod'
-        run: |
-          echo "PROD_VITE_API_URL=${{ secrets.PROD_VITE_API_URL }}" >> $GITHUB_ENV
-          echo "PROD_PATH=prod/path" >> $GITHUB_ENV
+          if [[ ${{ github.ref }} == 'refs/heads/dev' ]]; then
+            echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
+            echo "DEV_PATH=dev/path" >> $GITHUB_ENV
+          elif [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
+            echo "PROD_VITE_API_URL=${{ secrets.PROD_VITE_API_URL }}" >> $GITHUB_ENV
+            echo "PROD_PATH=prod/path" >> $GITHUB_ENV
+          fi
 
       - name: Get short SHA
         id: short-sha
@@ -57,13 +55,10 @@ jobs:
           DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
 
-          # Log in to Docker Hub
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-          # Build Docker image
           docker build -t $DOCKER_IMAGE .
 
-          # Tag and Push Docker image for each determined tag
           IFS=',' read -ra TAGS <<< "$DOCKER_IMAGE_TAGS"
           for TAG in "${TAGS[@]}"; do
             docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$TAG
