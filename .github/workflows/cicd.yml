@@ -93,13 +93,13 @@ jobs:
           LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo $DEV_PATH || echo $PROD_PATH)
           
           # Check if the file exists
-          if [ -f "$LS_PATH" ]; then
+          if [ -n "$LS_PATH" ] && [ -f "$LS_PATH" ]; then
             sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" "$LS_PATH"
             git add "$LS_PATH"
             git commit -m "Update image version to $IMAGE_TAG"
             git push
           else
-            echo "Error: $LS_PATH does not exist."
+            echo "Error: $LS_PATH does not exist or is not set."
             exit 1
           fi
 
