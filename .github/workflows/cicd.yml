@@ -15,9 +15,6 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        branch: [dev, prod]
     outputs:
       sha: ${{ steps.short-sha.outputs.sha }}
     steps:
@@ -26,10 +23,10 @@ jobs:
 
       - name: Set environment variables
         run: |
-          if [[ ${{ matrix.branch }} == 'dev' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/dev' ]]; then
             echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
             echo "DEV_PATH=dev/path" >> $GITHUB_ENV
-          else
+          elif [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
             echo "PROD_VITE_API_URL=${{ secrets.PROD_VITE_API_URL }}" >> $GITHUB_ENV
             echo "PROD_PATH=prod/path" >> $GITHUB_ENV
           fi
@@ -93,3 +90,4 @@ jobs:
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
+
