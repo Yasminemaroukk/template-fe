@@ -1,29 +1,4 @@
 name: CI/CD Pipeline
-
-on:
-  push:
-    branches:
-      - main
-      - dev
-      - prod
-    tags:
-      - 'v*.*.*'
-
-env:
-  DOCKER_IMAGE: yasminemarzouk/template-fe
-
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    outputs:
-      sha: ${{ steps.short-sha.outputs.sha }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set environment variables
-        run: |
-          if [[ ${{ github.ref }} == 'refs/heads/dev' ]]; then
             echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
             echo "DEV_PATH=dev/path" >> $GITHUB_ENV
           elif [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
