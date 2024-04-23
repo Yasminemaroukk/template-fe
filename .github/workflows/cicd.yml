@@ -13,20 +13,23 @@ env:
   DOCKER_IMAGE: yasminemarzouk/template-fe
 
 jobs:
-
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [dev, prod]
     outputs:
       sha: ${{ steps.short-sha.outputs.sha }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set environment variables
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/dev' ]]; then
+          if [[ ${{ matrix.branch }} == 'dev' ]]; then
             echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
             echo "DEV_PATH=dev/path" >> $GITHUB_ENV
-          elif [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
+          else
             echo "PROD_VITE_API_URL=${{ secrets.PROD_VITE_API_URL }}" >> $GITHUB_ENV
             echo "PROD_PATH=prod/path" >> $GITHUB_ENV
           fi
@@ -55,13 +58,10 @@ jobs:
           DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
 
-          # Log in to Docker Hub
           echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-          # Build Docker image
           docker build -t $DOCKER_IMAGE .
 
-          # Tag and Push Docker image for each determined tag
           IFS=',' read -ra TAGS <<< "$DOCKER_IMAGE_TAGS"
           for TAG in "${TAGS[@]}"; do
             docker tag $DOCKER_IMAGE $DOCKER_IMAGE:$TAG
@@ -88,12 +88,8 @@ jobs:
       - name: Update Deployment Image
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ vars.DEV_PATH }} || echo ${{ vars.PROD_PATH }})
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ secrets.DEV_PATH }} || echo ${{ secrets.PROD_PATH }})
           sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
           git push
-
-
-
-
