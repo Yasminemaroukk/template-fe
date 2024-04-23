@@ -20,18 +20,16 @@ jobs:
       sha: ${{ steps.short-sha.outputs.sha }}
     steps:
       - uses: actions/checkout@v2
-    
-      - name: Set env to dev
-        if: github.ref == 'refs/heads/dev'
+
+      - name: Set environment variables
         run: |
-          echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
-          echo "DEV_PATH=dev/path" >> $GITHUB_ENV
-      
-      - name: Set env to production
-        if: github.ref == 'refs/heads/prod'
-        run: |
-          echo "PROD_VITE_API_URL=${{ secrets.PROD_VITE_API_URL }}" >> $GITHUB_ENV
-          echo "PROD_PATH=prod/path" >> $GITHUB_ENV
+          if [[ ${{ github.ref }} == 'refs/heads/dev' ]]; then
+            echo "DEV_VITE_API_URL=${{ secrets.DEV_VITE_API_URL }}" >> $GITHUB_ENV
+            echo "DEV_PATH=dev/path" >> $GITHUB_ENV
+          elif [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
+            echo "PROD_VITE_API_URL=${{ secrets.PROD_VITE_API_URL }}" >> $GITHUB_ENV
+            echo "PROD_PATH=prod/path" >> $GITHUB_ENV
+          fi
 
       - name: Get short SHA
         id: short-sha
@@ -90,7 +88,7 @@ jobs:
       - name: Update Deployment Image
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ vars.DEV_PATH }} || echo ${{ vars.PROD_PATH }})
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo $DEV_PATH || echo $PROD_PATH)
           sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
           git add .
           git commit -m "Update image version to $IMAGE_TAG"
