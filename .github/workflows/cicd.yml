@@ -10,7 +10,8 @@ on:
       - 'v*.*.*'
 
 env:
-  DOCKER_IMAGE: yasminemarzouk/template-fe
+  DOCKER_IMAGE: ${{ github.ref == 'refs/heads/prod' && 'yasminemarzouk/template-fe-prod' || 'yasminemarzouk/template-fe' }}
+
 
 jobs:
   build-and-push:
