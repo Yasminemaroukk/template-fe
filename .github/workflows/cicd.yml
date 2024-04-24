@@ -40,7 +40,8 @@ jobs:
 
   update-deployment:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
+    environment:
+      name: ${{ github.ref == 'refs/heads/prod' && 'prod' || 'dev' }}
     needs: build-and-push
     steps:
       - name: Checkout deployment code
@@ -57,11 +58,8 @@ jobs:
 
       - name: Update Deployment Image
         run: |
-          IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
           LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ vars.DEV_PATH }} || echo ${{ vars.PROD_PATH }})
-          echo "LS_PATH: $LS_PATH"
-
-          sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
+          sed -i "s|newTag: .*|newTag: ${{ github.sha }}|" $LS_PATH
           git add .
-          git commit -m "Update image version to $IMAGE_TAG"
+          git commit -m "Update image version "
           git push
