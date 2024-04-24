@@ -87,7 +87,7 @@ jobs:
         run: |
           IMAGE_TAG=${{ needs.build-and-push.outputs.sha }}
           echo "Setting LS_PATH..."
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo $DEV_PATH || echo $PROD_PATH)
+          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo ${{ vars.DEV_PATH }} || echo ${{ vars.PROD_PATH }})
           echo "LS_PATH: $LS_PATH"
 
           sed -i "s|newTag: .*|newTag: $IMAGE_TAG|" $LS_PATH
