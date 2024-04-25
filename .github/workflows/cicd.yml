@@ -60,3 +60,4 @@ jobs:
           git add .
           git commit -m "Update image version "
           git push
+          #
