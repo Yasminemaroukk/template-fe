@@ -9,16 +9,23 @@ on:
     tags:
       - 'v*.*.*'
 
-env:
-  PROD_ENV: "prod"
-  DEV_ENV: "dev"
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ env.PROD_ENV if github.ref == 'refs/heads/prod' else env.DEV_ENV }} 
     steps:
+      - name: Determine Environment
+        id: determine_environment
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
+            echo "PROD_ENV"
+          else
+            echo "DEV_ENV"
+          fi
+        env:
+          PROD_ENV: "prod"
+          DEV_ENV: "dev"
+      - name: Set Environment Name
+        run: echo "::set-env name=ENV_NAME::${{ steps.determine_environment.outputs.stdout }}"
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -33,15 +40,26 @@ jobs:
         with:
           context: ./
           tags: |
-            yasminemarzouk/template-fe-${{ env.PROD_ENV if github.ref == 'refs/heads/prod' else env.DEV_ENV }}:${{ github.sha }}
+            yasminemarzouk/template-fe-${{ env.ENV_NAME }}:${{ github.sha }}
           push: true
 
   update-deployment:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ env.PROD_ENV if github.ref == 'refs/heads/prod' else env.DEV_ENV }}
     needs: build-and-push
     steps:
+      - name: Determine Environment
+        id: determine_environment
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/prod" ]; then
+            echo "PROD_ENV"
+          else
+            echo "DEV_ENV"
+          fi
+        env:
+          PROD_ENV: "prod"
+          DEV_ENV: "dev"
+      - name: Set Environment Name
+        run: echo "::set-env name=ENV_NAME::${{ steps.determine_environment.outputs.stdout }}"
       - name: Checkout deployment code
         uses: actions/checkout@v2
         with:
@@ -49,16 +67,4 @@ jobs:
           ref: 'main'
           token: ${{ secrets.TOKEN }}
 
-      - name: Configure Git
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-      - name: Update Deployment Image
-        run: |
-          LS_PATH=$([[ $GITHUB_REF == refs/heads/dev ]] && echo $DEV_PATH || echo $PROD_PATH)
-          sed -i "s|newTag: .*|newTag: ${{ github.sha }}|" $LS_PATH
-          git add .
-          git commit -m "Update image version "
-          git push
-
+     
