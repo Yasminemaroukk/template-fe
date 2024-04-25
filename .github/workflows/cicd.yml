@@ -9,9 +9,6 @@ on:
     tags:
       - 'v*.*.*'
 
-env:
-  DOCKER_IMAGE: ${{ github.ref == 'refs/heads/prod' && 'yasminemarzouk/template-fe-prod' || 'yasminemarzouk/template-fe' }}
-
 
 jobs:
   build-and-push:
@@ -63,5 +60,3 @@ jobs:
           git add .
           git commit -m "Update image version "
           git push
-##this is my cicd pipeline 
-
