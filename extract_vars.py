@@ -15,3 +15,4 @@ def extract_secret_vars():
 
 if __name__ == "__main__":
     extract_secret_vars()
+
