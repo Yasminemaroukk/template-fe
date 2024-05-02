@@ -7,7 +7,7 @@ def extract_secret_vars():
         path_var = os.getenv(prefix + "PATH")
         if path_var:
             with open(".env", "w") as env_file:
-                env_file.write(f"PATH={path_var}")
+                env_file.write(f"PATH={path_secret}")
         else:
             raise ValueError(f"{prefix}PATH not found in secrets.")
     else:
