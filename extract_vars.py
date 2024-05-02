@@ -6,7 +6,7 @@ def extract_secret_vars():
     if branch:
         prefix = "DEV_" if branch == "refs/heads/dev" else "PROD_"
         print("Prefix:", prefix)  # Add this line for debug
-        path_var = os.getenv(prefix + "PATH")
+        path_var = os.getenv(prefix + "PATH")  # Fetching secret directly from environment variables
         print("Path Variable:", path_var)  # Add this line for debug
         if path_var:
             with open(".env", "w") as env_file:
